@@ -2,6 +2,7 @@
 
 
 void analizatrama(unsigned char []);
+void analizaLLC(unsigned char []);
 
 
 unsigned char uc[][6] = {"UI", "SIM", "-", "SARM", "UP", "-", "-", "SABM", "DISC", "-", "-", "SARME", "-", "-", "-", "SABME", "SNRM", "-", "-", "RSET", "-", "-", "-", "XID", "-", "-", "-", "SNRME"};
@@ -39,8 +40,36 @@ void analizatrama(unsigned char t[]) {
     printf("MAC origen:\t%02X-%02X-%02X-%02X-%02X-%02X\n\n", t[6], t[7], t[8], t[9], t[10], t[11]);
 
     // Analizar según tamaño/tipo
-    if (tot <= 1500) printf("LLC\n");
+    if (tot <= 1500) analizaLLC(t);
     else if (tot == 2048) printf("IP\n");
     else if (tot == 2056) printf("ARP\n");
     else printf(".:: Otro ::.\n\nTipo: 0x%02x 0x%02x\n", t[12], t[13]);
+}
+
+void analizaLLC(unsigned char t[]) {
+    // Imprimir datos de la cabecera LLC
+    printf(".:: Cabecera LLC ::.\n\n");
+
+    // Analizar tipo de trama
+    switch (t[16] & 3) {
+        case 0:
+        case 2:
+            printf("T-I, N(s) = %d, N(r) = %d", t[16] >> 1, t[17] >> 1);
+            if (t[17] & 1) printf(" - %c", (t[15] & 1 ? 'f' : 'p'));
+            break;
+        case 1:
+            printf("T-S, S = %s, N(r) = %d", ss[(t[16] >> 2) & 3], t[17] >> 1);
+            if (t[17] & 1) printf(" - %c", (t[15] & 1 ? 'f' : 'p'));
+            break;
+        case 3:
+            printf("T-U");
+            if (t[16] & 16) {
+                if (t[15] & 1)
+                    printf(", M = %s - f", ur[((t[16] >> 3) & 28) | ((t[16]) >> 2) & 3]);
+                else
+                    printf(", M = %s - p", uc[((t[16] >> 3) & 28) | ((t[16]) >> 2) & 3]);
+            }
+            break;
+    }
+    printf("\n");
 }
