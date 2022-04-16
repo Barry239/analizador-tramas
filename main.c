@@ -42,5 +42,5 @@ void analizatrama(unsigned char t[]) {
     if (tot <= 1500) printf("LLC\n");
     else if (tot == 2048) printf("IP\n");
     else if (tot == 2056) printf("ARP\n");
-    else printf("Otro\n");
+    else printf(".:: Otro ::.\n\nTipo: 0x%02x 0x%02x\n", t[12], t[13]);
 }
