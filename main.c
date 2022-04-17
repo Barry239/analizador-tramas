@@ -42,7 +42,7 @@ void analizatrama(unsigned char t[]) {
     // Analizar según tamaño/tipo
     if (tot <= 1500) analizaLLC(t);
     else if (tot == 2048) printf("IP\n");
-    else if (tot == 2056) printf("ARP\n");
+    else if (tot == 2054) printf("ARP\n");
     else printf(".:: Otro ::.\n\nTipo: 0x%02x 0x%02x\n", t[12], t[13]);
 }
 
@@ -65,9 +65,9 @@ void analizaLLC(unsigned char t[]) {
             printf("T-U");
             if (t[16] & 16) {
                 if (t[15] & 1)
-                    printf(", M = %s - f", ur[((t[16] >> 3) & 28) | ((t[16]) >> 2) & 3]);
+                    printf(", M = %s - f", ur[((t[16] >> 3) & 28) | ((t[16] >> 2) & 3)]);
                 else
-                    printf(", M = %s - p", uc[((t[16] >> 3) & 28) | ((t[16]) >> 2) & 3]);
+                    printf(", M = %s - p", uc[((t[16] >> 3) & 28) | ((t[16] >> 2) & 3)]);
             }
             break;
     }
