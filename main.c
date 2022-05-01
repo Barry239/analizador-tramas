@@ -90,7 +90,7 @@ void analizaARP(unsigned char t[]) {
             printf("Frame Relay\n");
             break;
         case 16:
-            printf("Frame Relay\n");
+            printf("ATM\n");
             break;
         default:
             printf("Otro (0x%02x 0x%02x)\n", t[14], t[15]);
