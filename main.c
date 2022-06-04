@@ -198,7 +198,7 @@ void analizaIP(unsigned char t[]) {
 
     // Opciones
     printf("Opciones:%s", (ihl > 20 ? "\n" : "\t\t\tNinguna\n"));
-    for (i = 34; i < ihl + 14; i +=4)
+    for (i = 34; i < ihl + 14; i += 4)
         printf("   0x%02x 0x%02x 0x%02x 0x%02x\n", t[i], t[i + 1], t[i + 2], t[i + 3]);
 }
 
