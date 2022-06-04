@@ -8,6 +8,7 @@ void analizatrama(unsigned char []);
 void analizaLLC(unsigned char []);
 void analizaIP(unsigned char []);
 void analizaARP(unsigned char []);
+void analizaTCP(unsigned char [], unsigned char);
 
 
 unsigned char uc[][6] = {"UI", "SIM", "-", "SARM", "UP", "-", "-", "SABM", "DISC", "-", "-", "SARME", "-", "-", "-", "SABME", "SNRM", "-", "-", "RSET", "-", "-", "-", "XID", "-", "-", "-", "SNRME"};
@@ -17,8 +18,7 @@ unsigned char ss[][5] = {"RR", "RNR", "REJ", "SREJ"};
 
 int main(int argc, char const *argv[]) {
     unsigned char t[][MAX_ETH_HDR_SIZE] = {
-        {0x00, 0x14, 0xd1, 0xc2, 0x38, 0xbe, 0x00, 0x18, 0xe7, 0x33, 0x3d, 0xc3, 0x08, 0x00, 0x45, 0x00, 0x00, 0x3c, 0x00, 0x32, 0x00, 0x00, 0x80, 0x01, 0xb5, 0x00, 0xc0, 0xa8, 0x02, 0x3c, 0xc0, 0xa8, 0x02, 0x02, 0x08, 0x00, 0x42, 0x5c, 0x02, 0x00, 0x09, 0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69},
-        {0x00, 0x18, 0xe7, 0x33, 0x3d, 0xc3, 0x00, 0x14, 0xd1, 0xc2, 0x38, 0xbe, 0x08, 0x00, 0x47, 0x00, 0x00, 0x3c, 0x97, 0x00, 0x00, 0x00, 0x40, 0x01, 0x49, 0xcb, 0xc0, 0xa8, 0x02, 0x02, 0xc0, 0xa8, 0x02, 0x3c, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0xab, 0xcd, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69}
+        {0x00, 0x01, 0xf4, 0x43, 0xc9, 0x19, 0x00, 0x18, 0xe7, 0x33, 0x3d, 0xc3, 0x08, 0x00, 0x45, 0x00, 0x00, 0x28, 0xf6, 0x18, 0x40, 0x00, 0x80, 0x06, 0x6b, 0xa4, 0x94, 0xcc, 0x19, 0xf5, 0x40, 0xe9, 0xa9, 0x68, 0x08, 0x3a, 0x00, 0x50, 0x42, 0xfe, 0xd8, 0x4a, 0x6a, 0x66, 0xac, 0xc8, 0x50, 0x10, 0x42, 0x0e, 0x00, 0x00, 0x00, 0x00}
     };
     
     unsigned char i;
@@ -200,6 +200,13 @@ void analizaIP(unsigned char t[]) {
     printf("Opciones:%s", (ihl > 20 ? "\n" : "\t\t\tNinguna\n"));
     for (i = 34; i < ihl + 14; i += 4)
         printf("   0x%02x 0x%02x 0x%02x 0x%02x\n", t[i], t[i + 1], t[i + 2], t[i + 3]);
+
+    // Analizar según protocolo
+    switch (t[23]) {
+        case 6:
+            analizaTCP(t, ihl);
+            break;
+    }
 }
 
 void analizaARP(unsigned char t[]) {
@@ -272,4 +279,52 @@ void analizaARP(unsigned char t[]) {
     // Dirección de protocolo destino
     printf("Direcci%cn de protocolo destino:\t\t", 162);
     printf("%d.%d.%d.%d\n", t[38], t[39], t[40], t[41]);
+}
+
+void analizaTCP(unsigned char t[], unsigned char ihl) {
+    unsigned char offset, i;
+
+    // Imprimir datos de la cabecera TCP
+    printf("\n.:: Cabecera TCP ::.\n\n");
+
+    // Puerto de origen
+    printf("Puerto de origen:\t\t%d\n", (t[ihl + 14] << 8) | t[ihl + 15]);
+
+    // Puerto de destino
+    printf("Puerto de destino:\t\t%d\n", (t[ihl + 16] << 8) | t[ihl + 17]);
+
+    // Número de secuencia
+    printf("N%cmero de secuencia:\t\t%d\n", 163, (t[ihl + 18] << 24) | (t[ihl + 19] << 16) | (t[ihl + 20] << 8) | t[ihl + 21]);
+
+    // Número de reconocimiento
+    printf("N%cmero de reconocimiento:\t%d\n", 163, (t[ihl + 22] << 24) | (t[ihl + 23] << 16) | (t[ihl + 24] << 8) | t[ihl + 25]);
+
+    // Desplazamiento de datos
+    offset = (t[ihl + 26] >> 4) * 4;
+    printf("Desplazamiento de datos:\t%d bytes\n", offset);
+
+    // Bits de control
+    printf("Bits de control:\n", 162);
+    printf("   CWR:\t\t\t\t%c\n", t[ihl + 27] & 128 ? '1' : '0');
+    printf("   ECE:\t\t\t\t%c\n", t[ihl + 27] & 64 ? '1' : '0');
+    printf("   URG:\t\t\t\t%c\n", t[ihl + 27] & 32 ? '1' : '0');
+    printf("   ACK:\t\t\t\t%c\n", t[ihl + 27] & 16 ? '1' : '0');
+    printf("   PSH:\t\t\t\t%c\n", t[ihl + 27] & 8 ? '1' : '0');
+    printf("   RST:\t\t\t\t%c\n", t[ihl + 27] & 4 ? '1' : '0');
+    printf("   SYN:\t\t\t\t%c\n", t[ihl + 27] & 2 ? '1' : '0');
+    printf("   FIN:\t\t\t\t%c\n", t[ihl + 27] & 1 ? '1' : '0');
+    
+    // Ventana
+    printf("Ventana:\t\t\t%d\n", (t[ihl + 28] << 8) | t[ihl + 29]);
+
+    // Suma de control
+    printf("Suma de control:\t\t0x%02x 0x%02x\n", t[ihl + 30], t[ihl + 31]);
+
+    // Puntero urgente
+    printf("Puntero urgente:\t\t%d bytes\n", t[ihl + 32], t[ihl + 33]);
+
+    // Opciones
+    printf("Opciones:%s", (offset > 20 ? "\n" : "\t\t\tNinguna\n"));
+    for (i = 34; i < offset + 14; i += 4)
+        printf("   0x%02x 0x%02x 0x%02x 0x%02x\n", t[i], t[i + 1], t[i + 2], t[i + 3]);
 }
