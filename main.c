@@ -89,7 +89,7 @@ void analizaIP(unsigned char t[]) {
     printf("IHL:\t\t\t\t%d bytes\n", ihl);
 
     // Tipo de servicio
-    printf("Tipo de servicio\n");
+    printf("Tipo de servicio:\n");
     printf("   Precedencia:\t\t\t");
     switch (t[15] >> 5) {
         case 0:
@@ -325,6 +325,6 @@ void analizaTCP(unsigned char t[], unsigned char ihl) {
 
     // Opciones
     printf("Opciones:%s", (offset > 20 ? "\n" : "\t\t\tNinguna\n"));
-    for (i = 34; i < offset + 14; i += 4)
+    for (i = ihl + 34; i < offset + ihl + 14; i += 4)
         printf("   0x%02x 0x%02x 0x%02x 0x%02x\n", t[i], t[i + 1], t[i + 2], t[i + 3]);
 }
