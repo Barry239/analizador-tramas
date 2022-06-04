@@ -131,9 +131,11 @@ void analizaIP(unsigned char t[]) {
     // Banderas
     printf("Banderas:\n");
     printf("   Fragmentar:\t\t\t");
-    t[20] & 64 ? printf("S%c\n", 161) : printf("No\n");
+    if (t[20] & 64) printf("S%c\n", 161);
+    else printf("No\n");
     printf("   %cltimo fragmento:\t\t", 233);
-    t[20] & 32 ? printf("S%c\n", 161) : printf("No\n");
+    if (t[20] & 32) printf("S%c\n", 161);
+    else printf("No\n");
 
     // Desplazamiento de fragmento
     printf("Desplazamiento de fragmento:\t%d bytes\n", (((t[20] & 31) << 8) | t[21]) * 8);
