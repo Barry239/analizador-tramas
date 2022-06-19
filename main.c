@@ -11,6 +11,7 @@ void analizaARP(unsigned char []);
 void analizaICMP(unsigned char [], unsigned char, unsigned char);
 void analizaTCP(unsigned char [], unsigned char);
 void analizaUDP(unsigned char [], unsigned char);
+void pseudocabecera(unsigned char [], unsigned char []);
 unsigned short checksum(unsigned char [], unsigned char [], unsigned char, unsigned char, unsigned char);
 
 
@@ -363,7 +364,8 @@ void analizaICMP(unsigned char t[], unsigned char ihl, unsigned char tt) {
 }
 
 void analizaTCP(unsigned char t[], unsigned char ihl) {
-    unsigned char offset, i;
+    unsigned char offset, i, ps[12];
+    unsigned short cs;
 
     // Imprimir datos de la cabecera TCP
     printf("\n.:: Cabecera TCP ::.\n\n");
@@ -399,7 +401,11 @@ void analizaTCP(unsigned char t[], unsigned char ihl) {
     printf("Ventana:\t\t\t%d\n", (t[ihl + 28] << 8) | t[ihl + 29]);
 
     // Suma de control
-    printf("Suma de control:\t\t0x%02x 0x%02x\n", t[ihl + 30], t[ihl + 31]);
+    printf("Suma de control:\t\t0x%02x 0x%02x ", t[ihl + 30], t[ihl + 31]);
+    pseudocabecera(t, ps);
+    cs = checksum(ps, t, ihl + 14, ihl + 14 + offset, 30);
+    if (cs == (t[ihl + 30] << 8) | t[ihl + 31]) printf("(Correcto)\n");
+    else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
 
     // Puntero urgente
     printf("Puntero urgente:\t\t%d bytes\n", t[ihl + 32], t[ihl + 33]);
@@ -434,6 +440,25 @@ void analizaUDP(unsigned char t[], unsigned char ihl) {
     for (i = ihl + 22; i < length + ihl + 14; i++)
         printf("%s 0x%02x%s", (i - ihl - 22) % 4 ? "" : "  ", t[i], (i - ihl - 21) % 4 ? "" : "\n");
     if (length % 4) printf("\n");
+}
+
+void pseudocabecera(unsigned char t[], unsigned char ps[]) {
+    unsigned short int tam;
+    unsigned char i;
+
+    // IP de origen y destino
+    for (i = 0; i < 8; i++) ps[i] = t[26 + i];
+
+    // Ceros
+    ps[8] = 0;
+
+    // Protocolo
+    ps[9] = t[23];
+    
+    // Tamaño de cabecera
+    tam = ((t[16] << 8) | t[17]) - ((t[14] & 15) * 4);
+    ps[10] = tam >> 8;
+    ps[11] = tam & 255;
 }
 
 unsigned short checksum(unsigned char ps[], unsigned char t[], unsigned char com, unsigned char tam, unsigned char pos) {
