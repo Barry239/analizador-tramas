@@ -129,9 +129,9 @@ void analizaIP(unsigned char t[]) {
             break;
     }
     printf("   Retraso:\t\t\t%s\n", (t[15] & 16 ? "Bajo" : "Normal"));
-    printf("   Rendimiento:\t\t\t%s\n", (t[15] & 16 ? "Alto" : "Normal"));
-    printf("   Fiabilidad:\t\t\t%s\n", (t[15] & 16 ? "Alta" : "Normal"));
-    printf("   Costo:\t\t\t%s\n", (t[15] & 16 ? "Bajo" : "Normal"));
+    printf("   Rendimiento:\t\t\t%s\n", (t[15] & 8 ? "Alto" : "Normal"));
+    printf("   Fiabilidad:\t\t\t%s\n", (t[15] & 4 ? "Alta" : "Normal"));
+    printf("   Costo:\t\t\t%s\n", (t[15] & 2 ? "Bajo" : "Normal"));
 
     // Tamaño total
     printf("Tama%co total:\t\t\t%d bytes\n", 164, (t[16] << 8) | t[17]);
