@@ -11,7 +11,7 @@ void analizaARP(unsigned char []);
 void analizaICMP(unsigned char [], unsigned char, unsigned char);
 void analizaTCP(unsigned char [], unsigned char);
 void analizaUDP(unsigned char [], unsigned char);
-void checksum(unsigned char [], unsigned char);
+void checksum(unsigned char [], unsigned char [], unsigned char, unsigned char, unsigned short int);
 
 
 unsigned char uc[][6] = {"UI", "SIM", "-", "SARM", "UP", "-", "-", "SABM", "DISC", "-", "-", "SARME", "-", "-", "-", "SABME", "SNRM", "-", "-", "RSET", "-", "-", "-", "XID", "-", "-", "-", "SNRME"};
@@ -200,7 +200,7 @@ void analizaIP(unsigned char t[]) {
 
     // Suma de control
     printf("Suma de control:\t\t0x%02x 0x%02x ", t[24], t[25]);
-    checksum(t, ihl);
+    checksum(NULL, t, ihl, 24, (t[24] << 8) | t[25]);
 
     // IP origen
     printf("IP origen:\t\t\t%d.%d.%d.%d\n", t[26], t[27], t[28], t[29]);
@@ -433,15 +433,23 @@ void analizaUDP(unsigned char t[], unsigned char ihl) {
     if (length % 4) printf("\n");
 }
 
-void checksum(unsigned char t[], unsigned char tam) {
+void checksum(unsigned char ps[], unsigned char t[], unsigned char tam, unsigned char pos, unsigned short res) {
     unsigned char i;
     unsigned int cs = 0;
 
-    for (i = 14; i < tam + 14; i += 2) cs += (t[i] << 8) | t[i + 1];
+    // Sumar pseudocabecera
+    if (ps != NULL) {
+        for (i = 0; i < 12; i += 2) cs += (ps[i] << 8) | ps[i + 1];
+    }
+
+    // Sumar cabecera
+    for (i = 14; i < tam + 14; i += 2) {
+        if (i != pos && i != pos + 1) cs += (t[i] << 8) | t[i + 1];
+    }
 
     cs += cs >> 16;
     cs = ~cs & 0xffff;
 
-    if (!cs) printf("(Correcto)\n");
+    if (cs == res) printf("(Correcto)\n");
     else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
 }
