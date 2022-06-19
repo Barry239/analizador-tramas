@@ -11,7 +11,7 @@ void analizaARP(unsigned char []);
 void analizaICMP(unsigned char [], unsigned char, unsigned char);
 void analizaTCP(unsigned char [], unsigned char);
 void analizaUDP(unsigned char [], unsigned char);
-void checksum(unsigned char [], unsigned char [], unsigned char, unsigned char, unsigned short int);
+unsigned short checksum(unsigned char [], unsigned char [], unsigned char, unsigned char, unsigned char);
 
 
 unsigned char uc[][6] = {"UI", "SIM", "-", "SARM", "UP", "-", "-", "SABM", "DISC", "-", "-", "SARME", "-", "-", "-", "SABME", "SNRM", "-", "-", "RSET", "-", "-", "-", "XID", "-", "-", "-", "SNRME"};
@@ -88,6 +88,7 @@ void analizaLLC(unsigned char t[]) {
 
 void analizaIP(unsigned char t[]) {
     unsigned char ihl, i;
+    unsigned short cs;
 
     // Imprimir datos de la cabecera IP
     printf(".:: Cabecera IP ::.\n\n");
@@ -200,7 +201,9 @@ void analizaIP(unsigned char t[]) {
 
     // Suma de control
     printf("Suma de control:\t\t0x%02x 0x%02x ", t[24], t[25]);
-    checksum(NULL, t, ihl, 24, (t[24] << 8) | t[25]);
+    cs = checksum(NULL, t, 14, ihl, 24);
+    if (cs == (t[24] << 8) | t[25]) printf("(Correcto)\n");
+    else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
 
     // IP origen
     printf("IP origen:\t\t\t%d.%d.%d.%d\n", t[26], t[27], t[28], t[29]);
@@ -433,7 +436,7 @@ void analizaUDP(unsigned char t[], unsigned char ihl) {
     if (length % 4) printf("\n");
 }
 
-void checksum(unsigned char ps[], unsigned char t[], unsigned char tam, unsigned char pos, unsigned short res) {
+unsigned short checksum(unsigned char ps[], unsigned char t[], unsigned char com, unsigned char tam, unsigned char pos) {
     unsigned char i;
     unsigned int cs = 0;
 
@@ -443,13 +446,11 @@ void checksum(unsigned char ps[], unsigned char t[], unsigned char tam, unsigned
     }
 
     // Sumar cabecera
-    for (i = 14; i < tam + 14; i += 2) {
+    for (i = com; i < tam + com; i += 2) {
         if (i != pos && i != pos + 1) cs += (t[i] << 8) | t[i + 1];
     }
 
     cs += cs >> 16;
-    cs = ~cs & 0xffff;
 
-    if (cs == res) printf("(Correcto)\n");
-    else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
+    return ~cs & 0xffff;
 }
