@@ -203,7 +203,7 @@ void analizaIP(unsigned char t[]) {
     // Suma de control
     printf("Suma de control:\t\t0x%02x 0x%02x ", t[24], t[25]);
     cs = checksum(NULL, t, 14, ihl, 24);
-    if (cs == (t[24] << 8) | t[25]) printf("(Correcto)\n");
+    if (cs == ((t[24] << 8) | t[25])) printf("(Correcto)\n");
     else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
 
     // IP origen
