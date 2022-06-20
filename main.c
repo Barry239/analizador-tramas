@@ -9,7 +9,7 @@ void analizaLLC(unsigned char []);
 void analizaIP(unsigned char []);
 void analizaARP(unsigned char []);
 void analizaICMP(unsigned char [], unsigned char, unsigned char);
-void analizaTCP(unsigned char [], unsigned char);
+void analizaTCP(unsigned char [], unsigned char, unsigned char);
 void analizaUDP(unsigned char [], unsigned char);
 void pseudocabecera(unsigned char [], unsigned char []);
 unsigned short checksum(unsigned char [], unsigned char [], unsigned char, unsigned char, unsigned char);
@@ -223,7 +223,7 @@ void analizaIP(unsigned char t[]) {
             analizaICMP(t, ihl, (t[16] << 8) | t[17]);
             break;
         case 6:
-            analizaTCP(t, ihl);
+            analizaTCP(t, ihl, (t[16] << 8) | t[17]);
             break;
         case 17:
             analizaUDP(t, ihl);
@@ -363,7 +363,7 @@ void analizaICMP(unsigned char t[], unsigned char ihl, unsigned char tt) {
     if ((tt - ihl) % 4) printf("\n");
 }
 
-void analizaTCP(unsigned char t[], unsigned char ihl) {
+void analizaTCP(unsigned char t[], unsigned char ihl, unsigned char tt) {
     unsigned char offset, i, ps[12];
     unsigned short cs;
 
@@ -403,8 +403,8 @@ void analizaTCP(unsigned char t[], unsigned char ihl) {
     // Suma de control
     printf("Suma de control:\t\t0x%02x 0x%02x ", t[ihl + 30], t[ihl + 31]);
     pseudocabecera(t, ps);
-    cs = checksum(ps, t, ihl + 14, ihl + 14 + offset, 30);
-    if (cs == (t[ihl + 30] << 8) | t[ihl + 31]) printf("(Correcto)\n");
+    cs = checksum(ps, t, ihl + 14, tt - ihl, ihl + 30);
+    if (cs == ((t[ihl + 30] << 8) | t[ihl + 31])) printf("(Correcto)\n");
     else printf("(Incorrecto, 0x%02x 0x%02x)\n", cs >> 8, cs & 0xff);
 
     // Puntero urgente
